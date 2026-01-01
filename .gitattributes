@@ -1,0 +1,21 @@
+# Auto-detect text files
+* text=auto
+
+# Ensure consistent line endings (LF)
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.crt binary
+*.key binary

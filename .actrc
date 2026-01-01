@@ -1,0 +1,24 @@
+# Default configuration for act (GitHub Actions local runner)
+
+# Use medium size image by default (has more tools)
+--platform ubuntu-latest=catthehacker/ubuntu:act-latest
+--platform ubuntu-22.04=catthehacker/ubuntu:act-22.04
+--platform ubuntu-20.04=catthehacker/ubuntu:act-20.04
+
+# Use docker to run containers
+--container-daemon-socket unix:///var/run/docker.sock
+
+# Pull docker images if not present
+--pull=true
+
+# Reuse containers to speed up runs
+--reuse=true
+
+# Default secret values for testing
+--secret GITHUB_TOKEN=fake-token-for-testing
+
+# Disable automatic checkout (we handle it manually)
+--no-recurse
+
+# Set default event
+--eventpath .github/workflows/event.json

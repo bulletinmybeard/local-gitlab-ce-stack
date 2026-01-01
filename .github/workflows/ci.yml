@@ -1,0 +1,75 @@
+name: CI (Local Testing)
+
+# Simplified CI workflow optimized for local testing with act
+on:
+  push:
+    branches: [ main, master, develop, test ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  shell-check:
+    name: Shell Script Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: Run ShellCheck
+        run: |
+          echo "Checking shell scripts..."
+          find . -name "*.sh" -type f -not -path "./test-ssh-clone/*" | while read -r script; do
+            echo "Checking: $script"
+            shellcheck -S warning -e SC1090,SC1091,SC2155 "$script" || exit 1
+          done
+          echo "All shell scripts passed validation"
+
+  docker-check:
+    name: Docker Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Validate docker-compose.yml
+        run: |
+          sudo apt-get update && sudo apt-get install -y python3-yaml
+          python3 -c "import yaml; yaml.safe_load(open('docker-compose.yml'))"
+          echo "docker-compose.yml is valid YAML"
+
+      - name: Check for hardcoded secrets
+        run: |
+          echo "Checking for potential secrets..."
+          if grep -E "(password|token|secret|key)[:=]\s*['\"]?[A-Za-z0-9]{8,}" docker-compose.yml | grep -v "GITLAB_ROOT_PASSWORD"; then
+            echo "Warning: Found potential hardcoded secrets (review above)"
+          else
+            echo "No obvious hardcoded secrets found"
+          fi
+
+  yaml-check:
+    name: YAML Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Install yamllint
+        run: |
+          sudo apt-get update && sudo apt-get install -y yamllint
+
+      - name: Run yamllint
+        run: |
+          echo "Checking YAML files..."
+          find . -name "*.yml" -o -name "*.yaml" | grep -v test-ssh-clone | while read -r file; do
+            echo "Checking: $file"
+            yamllint -d relaxed "$file" || true
+          done
+          echo "YAML validation complete"

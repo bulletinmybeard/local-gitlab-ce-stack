@@ -1,0 +1,43 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# GitHub
+.github/
+
+# IDE and editors
+.idea/
+.vscode/
+.claude/
+.DS_Store
+
+# Environment and credentials
+.env
+.env.sample
+docker/gitlab/scripts/credentials.env
+docker/gitlab/scripts/.initialized
+
+# SSH keys
+docker/gitlab/local-gitlab
+docker/gitlab/local-gitlab.pub
+
+# Generated certificates
+traefik-data/certs/localhost.crt
+traefik-data/certs/localhost.key
+
+# Documentation
+*.md
+LICENSE
+CODEOWNERS
+
+# Runtime and generated files
+docker/gitlab-runner/.runner_system_id
+docker/gitlab-runner/config.toml
+*.bak
+
+# Testing and examples
+.actrc
+examples/
+scripts/setup/
+scripts/testing/

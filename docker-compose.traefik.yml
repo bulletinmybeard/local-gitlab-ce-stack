@@ -1,0 +1,42 @@
+services:
+  traefik-gitlab:
+    image: traefik:3.6.5
+    container_name: traefik-gitlab
+    networks:
+      gitlab-network:
+        ipv4_address: 172.31.0.10
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./traefik-data/certs:/etc/traefik/certs:ro
+      - ./traefik-data/certs/dynamic.yml:/etc/traefik/dynamic.yml:ro
+    command:
+      # Entrypoints
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure.http.tls=true
+      # Redirect HTTP to HTTPS
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      # Enable API and Dashboard (secured via file provider)
+      - --api.dashboard=true
+      # Enable ping endpoint for health checks
+      - --ping=true
+      # File provider for dynamic configuration
+      - --providers.file.filename=/etc/traefik/dynamic.yml
+      - --providers.file.watch=true
+      # Logging
+      - --log.level=INFO
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  gitlab-network:
+    name: gitlab-network
+    external: true

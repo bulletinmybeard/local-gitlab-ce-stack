@@ -1,0 +1,95 @@
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:18.7.0-ce.0
+    hostname: gitlab
+    container_name: gitlab
+    networks:
+      gitlab-network:
+        # Assign a static IP address to the GitLab container.
+        ipv4_address: 172.31.0.2
+    restart: unless-stopped
+    ports:
+      - "8550:80"
+      - "2222:22"
+    volumes:
+      # Persist GitLab configuration (includes encryption secrets).
+      - gitlab-config:/etc/gitlab
+      # Persist GitLab data.
+      - gitlab-data:/var/opt/gitlab
+      # Mount custom scripts.
+      - ./docker/gitlab/scripts:/opt/scripts
+      # Shared runner config volume (init.sh writes, runner reads).
+      - runner-config:/opt/runner-config
+      # Mount public SSH key.
+      - ./docker/gitlab/local-gitlab.pub:/opt/local-gitlab.pub
+      # Allow Docker-in-Docker.
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/-/readiness?all=1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 300s
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost:8550'
+        nginx['listen_port'] = 80
+        nginx['listen_https'] = false
+        gitlab_rails['initial_root_password'] = ENV['GITLAB_ROOT_PASSWORD']
+        gitlab_rails['gitlab_shell_ssh_port'] = 2222
+        gitlab_rails['gitlab_ssh_host'] = 'localhost'
+        gitlab_rails['gitlab_ssh_user'] = 'git'
+        gitlab_rails['time_zone'] = 'Europe/Amsterdam'
+        gitlab_rails['lfs_enabled'] = true
+        gitlab_rails['gitlab_default_theme'] = 3
+        gitlab_rails['usage_ping_enabled'] = false
+        gitlab_rails['sentry_enabled'] = false
+        gitlab_rails['usage_ping_features_enabled'] = false
+        gitlab_rails['gitlab_experiment_enabled'] = false
+        gitlab_rails['version_check_enabled'] = false
+        gitlab_rails['update_notification_enabled'] = false
+        nginx['hsts_max_age'] = 0
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - .env
+    entrypoint: ["/opt/scripts/entrypoint.sh"]
+
+  gitlab-runner:
+    image: gitlab/gitlab-runner:alpine3.21-511a9606
+    container_name: gitlab-runner
+    networks:
+      gitlab-network:
+        ipv4_address: 172.31.0.3
+    restart: unless-stopped
+    ports:
+      # Expose the metrics port
+      - "9252:9252"
+    volumes:
+      # Allow Docker-in-Docker
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount the entrypoint.sh
+      - ./docker/gitlab-runner/scripts/entrypoint.sh:/opt/entrypoint.sh
+      # Shared runner config volume (init.sh writes, runner reads).
+      - runner-config:/opt/runner-config
+    environment:
+      GITLAB_RUNNER_DEBUG_TRACE: "false"
+    entrypoint: ["/opt/entrypoint.sh"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - .env
+    depends_on:
+      gitlab:
+        condition: service_healthy
+
+networks:
+  gitlab-network:
+    name: gitlab-network
+    external: true
+
+volumes:
+  gitlab-config:
+  gitlab-data:
+  runner-config:
+    external: true

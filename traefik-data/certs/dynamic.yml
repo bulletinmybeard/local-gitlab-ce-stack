@@ -1,0 +1,35 @@
+tls:
+  certificates:
+    - certFile: /etc/traefik/certs/localhost.crt
+      keyFile: /etc/traefik/certs/localhost.key
+
+http:
+  routers:
+    gitlab:
+      rule: "Host(`gitlab.localhost`)"
+      entrypoints:
+        - websecure
+      service: gitlab
+      tls: {}
+      middlewares:
+        - gitlab-headers
+
+    traefik-dashboard:
+      rule: "Host(`traefik.localhost`)"
+      entrypoints:
+        - websecure
+      service: api@internal
+      tls: {}
+
+  middlewares:
+    gitlab-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+          X-Forwarded-Ssl: "on"
+
+  services:
+    gitlab:
+      loadBalancer:
+        servers:
+          - url: "http://172.31.0.2:80"

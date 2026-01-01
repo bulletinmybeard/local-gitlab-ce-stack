@@ -1,0 +1,9 @@
+{
+  "push": {
+    "ref": "refs/heads/test",
+    "repository": {
+      "name": "local-gitlab-ce-stack",
+      "full_name": "bulletinmybeard/local-gitlab-ce-stack"
+    }
+  }
+}
