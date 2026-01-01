@@ -1,0 +1,44 @@
+# Environment variables
+.env
+!.env.sample
+
+# IDE and editors
+.idea/
+.vscode/
+.claude/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# SSH keys (auto-generated)
+docker/gitlab/local-gitlab
+docker/gitlab/local-gitlab.pub
+
+# Credentials
+docker/gitlab/scripts/credentials.env
+
+# GitLab Runner runtime files
+docker/gitlab-runner/.runner_system_id
+docker/gitlab-runner/config.toml
+
+# Exclude config files with tokens
+docker/gitlab-runner/**/*.toml
+docker/gitlab-runner/**/*.yml
+docker/gitlab-runner/**/*.yaml
+docker/gitlab/scripts/*.yml
+docker/gitlab/scripts/*.yaml
+
+# Init flag
+docker/gitlab/scripts/.initialized
+
+# Backup files
+*.bak
+
+# Traefik
+traefik-data/certs/localhost.crt
+traefik-data/certs/localhost.key
+traefik-data/certs/*.backup.*
+
+# Example .gitlab-ci.yml files and scripts
+examples/
